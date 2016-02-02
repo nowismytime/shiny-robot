@@ -1,0 +1,600 @@
+package iSDM;
+import java.util.*;
+import java.io.*;
+import java.text.SimpleDateFormat;
+public class Main {
+	static HashMap<String, Users> UserList = new HashMap<String, Users>();
+	static HashMap<String, Books> BookList = new HashMap<String, Books>();
+	static ArrayList<Issues> IssueList = new ArrayList<Issues>();
+	static ArrayList<Returns> ReturnList = new ArrayList<Returns>();
+	@SuppressWarnings("resource")
+	public static void main (String[] args) throws ClassNotFoundException, IOException
+	{
+		
+		Initialize.inAll(UserList, BookList, IssueList, ReturnList);
+		System.out.println("Enter your Option");
+		System.out.println("1. Add a User");
+		System.out.println("2. Remove a User");
+		System.out.println("3. Add a Book");
+		System.out.println("4. Remove a Book");
+		System.out.println("5. Find Books Issued");
+		System.out.println("6. Search a Book");
+		System.out.println("7. Issue a Book");
+		System.out.println("8. Return a Book");
+		System.out.println("9. Edit Book Details");
+		System.out.println("10. Edit User Details");
+		System.out.println("11. Save");
+		System.out.println("12. Save & Exit");
+		
+		
+		Scanner in = new Scanner(System.in);
+		int choice = in.nextInt();
+		
+		switch (choice)
+		{
+		case 1:
+			addUser();
+			break;
+		case 2:
+			remUser();
+			break;
+		case 3:
+			addBook();
+			break;
+		case 4:
+			remBook();
+			break;
+		case 5:
+			issuedBooks();
+			break;
+		case 6:
+			searchBook();
+			break;
+		case 7:
+			issueBook();
+			break;
+		case 8:
+			returnBook();
+			break;
+		case 9:
+			editBook();
+			break;
+		case 10:
+			editUser();
+			break;
+		case 11:
+			save();
+			break;
+		case 12:
+			sexit();
+			break;
+		}
+		
+		
+		
+		
+	}
+	
+	@SuppressWarnings("resource")
+	public static void addUser() throws IOException
+	{
+		Users nuser = new Users();
+		Scanner in = new Scanner(System.in);
+		System.out.println("Enter type: student or staff");
+		nuser.type = in.next();
+		System.out.println("Enter unique id");
+		String rNum = in.next();		
+		if (UserList.containsKey(rNum))
+		{
+			System.out.println("Error: User already exists");
+			return;
+		}		
+		nuser.rNum = rNum;
+		System.out.println("Enter Name");
+		nuser.Name = in.next();
+		System.out.println("Enter Branch");
+		nuser.Branch = in.next();
+		System.out.println("Enter Mob");
+		nuser.Mob = in.next();
+		System.out.println("Enter email-Id");
+		nuser.email = in.next();
+		if (nuser.type == "student")
+		{
+			System.out.println("Enter Semester");
+			nuser.Semester = in.next();
+		}
+		UserList.put(nuser.rNum, nuser);
+		
+		FileOutputStream fos = null;
+	    try {
+	        fos = new FileOutputStream("Users.txt");
+	        ObjectOutputStream oos = new ObjectOutputStream(fos);
+	        oos.writeObject(nuser);
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+	}
+	
+	@SuppressWarnings("resource")
+	public static void addBook() throws IOException
+	{
+		Books nuser = new Books();
+		Scanner in = new Scanner(System.in);
+		System.out.println("Enter the ISBN of the book");
+		nuser.ISBN = in.next();
+		System.out.println("Enter the book title");
+		nuser.title = in.next();
+		System.out.println("Enter Unique Book ID");
+		nuser.BookId = in.next();		
+		System.out.println("Enter Author's Name");
+		nuser.author = in.next();
+		System.out.println("Enter the field of study");
+		nuser.subject = in.next();
+		System.out.println("Enter book edition");
+		nuser.edition = in.nextInt();
+		System.out.println("Enter the number of days for which the book can be issued");
+		nuser.days=in.nextInt();
+		System.out.println("Enter publisher name");
+		nuser.Publisher=in.next();
+		BookList.put(nuser.BookId, nuser);
+		FileOutputStream fos = null;
+	    try {
+	        fos = new FileOutputStream("Books.txt");
+	        ObjectOutputStream oos = new ObjectOutputStream(fos);
+	        oos.writeObject(nuser);
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+	}
+	
+	@SuppressWarnings("resource")
+	public static void issuedBooks()
+	{
+		Scanner in = new Scanner(System.in);
+		System.out.println("Are you a Staff or a Student?");
+		String choice = in.next();
+		if (choice=="Student")
+		{
+			int count=0;
+			System.out.println("Enter your Roll Number");
+			String roll = in.next();
+			for (int i=0;i<IssueList.size();i++)
+			{
+				Issues nIssue = IssueList.get(i);
+				if(nIssue.rNum==roll)
+				{
+					Books nBook = BookList.get(nIssue.BookId);
+					System.out.println("Book Title:"+ nBook.title );
+					System.out.println("Book Author"+ nBook.author);
+					System.out.println("Date of Issue"+ nIssue.DOI);
+					String edate = null;
+					// calculate expected date of return
+					System.out.println("Expected Date of Return"+ edate);
+					System.out.println();
+					count++;
+				}
+			}
+			System.out.println("Total Number of Books Issued:" + count);
+		}
+		else if (choice == "Staff")
+		{
+			for (int i=0;i<IssueList.size();i++)
+			{
+				Issues nIssue = IssueList.get(i);
+				System.out.println("Book ISBN:"+nIssue.ISBN);
+				System.out.println("Student Roll Number:"+nIssue.rNum);
+				System.out.println("Date of Issue:"+nIssue.DOI);
+				System.out.println();				
+			}
+		}		
+	}
+	
+	@SuppressWarnings("resource")
+	public static void searchBook()
+	{
+		System.out.println("Search Book By:");
+		System.out.println("1. By Title");
+		System.out.println("2. By Author");
+		System.out.println("3. By Publisher");
+		System.out.println("4. By ISBN");
+		
+		Scanner in = new Scanner(System.in);
+		int choice = in.nextInt();
+		switch (choice)
+		{
+		case 1:
+			System.out.println("Enter Book Title");
+			String title = in.nextLine();
+			for (String key : BookList.keySet())
+			{
+				Books nbook = BookList.get(key);
+				if (nbook.title==title)
+				{
+					int i;
+					for(i=0;i<IssueList.size();i++)
+					{
+						Issues nIssue = IssueList.get(i);
+						if (nIssue.BookId==nbook.BookId)
+						{
+							System.out.println("Issued to:");
+							Users nuser = UserList.get(nIssue.rNum);
+							System.out.println("Name:"+nuser.Name + "Semester:"+nuser.Semester+"Roll No:"+nuser.rNum);
+							break;
+						}
+					}
+					if (i==IssueList.size())
+						System.out.println("Book Available for Issue");
+				}
+			}
+			break;
+			
+		case 2:
+			System.out.println("Enter Book Author");
+			String author = in.nextLine();
+			for (String key : BookList.keySet())
+			{
+				Books nbook = BookList.get(key);
+				if (nbook.author==author)
+				{
+					int i;
+					for(i=0;i<IssueList.size();i++)
+					{
+						Issues nIssue = IssueList.get(i);
+						if (nIssue.BookId==nbook.BookId)
+						{
+							System.out.println("Issued to:");
+							Users nuser = UserList.get(nIssue.rNum);
+							System.out.println("Name:"+nuser.Name + "Semester:"+nuser.Semester+"Roll No:"+nuser.rNum);
+							break;
+						}
+					}
+					if (i==IssueList.size())
+						System.out.println("Book Available for Issue");
+				}
+			}
+			break;
+			
+		case 3:
+			System.out.println("Enter Book Publisher");
+			String pub = in.nextLine();
+			for (String key : BookList.keySet())
+			{
+				Books nbook = BookList.get(key);
+				if (nbook.Publisher==pub)
+				{
+					int i;
+					for(i=0;i<IssueList.size();i++)
+					{
+						Issues nIssue = IssueList.get(i);
+						if (nIssue.BookId==nbook.BookId)
+						{
+							System.out.println("Issued to:");
+							Users nuser = UserList.get(nIssue.rNum);
+							System.out.println("Name:"+nuser.Name + "Semester:"+nuser.Semester+"Roll No:"+nuser.rNum);
+							break;
+						}
+					}
+					if (i==IssueList.size())
+						System.out.println("Book Available for Issue");
+				}
+			}
+			break;
+			
+		case 4:
+			System.out.println("Enter Book Title");
+			String ISBN = in.nextLine();
+			for (String key : BookList.keySet())
+			{
+				Books nbook = BookList.get(key);
+				if (nbook.ISBN==ISBN)
+				{
+					int i;
+					for(i=0;i<IssueList.size();i++)
+					{
+						Issues nIssue = IssueList.get(i);
+						if (nIssue.BookId==nbook.BookId)
+						{
+							System.out.println("Issued to:");
+							Users nuser = UserList.get(nIssue.rNum);
+							System.out.println("Name:"+nuser.Name + "Semester:"+nuser.Semester+"Roll No:"+nuser.rNum);
+							break;
+						}
+					}
+					if (i==IssueList.size())
+						System.out.println("Book Available for Issue");
+				}
+			}			
+		}
+	}
+	
+	public static void remBook()
+	{
+		
+		
+	}
+	
+	public static void remUser()
+	{
+		
+	}
+	
+	@SuppressWarnings("resource")
+	public static void issueBook()
+	{
+		Issues nIssue = new Issues();
+		System.out.println("Enter your unique ID");
+		Scanner in = new Scanner(System.in);
+		nIssue.rNum=in.next();
+		if (!UserList.containsKey(nIssue.rNum))
+		{
+			System.out.println("Error: User does not exist.");
+			return;
+		}
+		System.out.println("Enter unique Book ID of the book to be issued");
+		nIssue.BookId=in.next();
+		if (!BookList.containsKey(nIssue.BookId))
+		{
+			System.out.println("Error: Book does not exist.");
+			return;
+		}
+		for (int i=0;i<IssueList.size();i++)
+		{
+			Issues nIssue1 = IssueList.get(i);
+			if(nIssue1.BookId==nIssue.BookId)
+			{
+				System.out.println("Error: Book already issued.");
+				return;
+			}
+		}
+		System.out.println("Enter the ISBN of the book");
+		nIssue.ISBN=in.next();
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		String fdate = sdf.format(date);
+		nIssue.DOI=fdate;
+		IssueList.add(nIssue);
+	}
+	
+	@SuppressWarnings("resource")
+	public static void returnBook()
+	{
+		Returns nreturn = new Returns();
+		Scanner in = new Scanner(System.in);
+		System.out.println("Enter unique Book ID of the book to be returned");
+		nreturn.BookId=in.next();
+		if (!BookList.containsKey(nreturn.BookId))
+		{
+			System.out.println("Error: Book does not exist.");
+			return;
+		}
+		System.out.println("Enter your unique ID");		
+		nreturn.rNum=in.next();
+		if (!UserList.containsKey(nreturn.rNum))
+		{
+			System.out.println("Error: User does not exist.");
+			return;
+		}
+		int i;
+		for (i=0;i<IssueList.size();i++)
+		{
+			Issues nIssue = IssueList.get(i);
+			if(nIssue.BookId==nreturn.BookId)
+			{
+				if(nIssue.rNum!=nreturn.rNum)
+				{
+					System.out.println("Error: The Book Id is not issued to you.");
+					return;
+				}
+				nreturn.DOI=nIssue.DOI;
+			}
+		}
+		if (i==IssueList.size())
+		{
+			System.out.println("Error: Book has not been issued");
+			return;
+		}		
+		System.out.println("Enter the ISBN of the book");
+		nreturn.ISBN=in.next();
+		Books nBook = BookList.get(nreturn.BookId);
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		String fdate = sdf.format(date);
+		nreturn.DOR=fdate;
+		int days = calculate(nreturn.DOI, nreturn.DOR);
+		if (days<=nBook.days)
+			System.out.println("Thank You for returning the book in time");
+		else
+		{
+			nreturn.fine=(days-nBook.days)*2;
+			System.out.println("Your fine is: "+nreturn.fine);
+		}
+		ReturnList.add(nreturn);
+	}
+	
+	public static void editBook()
+	{
+		
+		
+	}
+	
+	@SuppressWarnings("resource")
+	public static void editUser()
+	{
+		System.out.println("Enter unique id:");
+		Scanner in = new Scanner(System.in);
+		String rNum = in.next();
+		if (!UserList.containsKey(rNum))
+		{
+			System.out.println("Error: User not found.");
+			return;
+		}
+		else
+		{
+			Users nuser = UserList.get(rNum);
+			UserList.remove(rNum);
+			System.out.println("Do you want to change the unique ID: Y/N");
+			String flag = in.next();
+			if(flag=="Y")
+			{
+				System.out.println("Enter new unique id:");
+				nuser.rNum=in.next();
+			}				
+			System.out.println("Enter type: student or staff");
+			nuser.type = in.next();		
+			System.out.println("Enter Name");
+			nuser.Name = in.next();
+			System.out.println("Enter Branch");
+			nuser.Branch = in.nextLine();
+			System.out.println("Enter Mob");
+			nuser.Mob = in.next();
+			System.out.println("Enter email-Id");
+			nuser.email = in.next();
+			if (nuser.type == "student")
+			{
+				System.out.println("Enter Semester");
+				nuser.Semester = in.next();
+			}
+			UserList.put(nuser.rNum,nuser);
+			
+			// edit in issues and returns
+		}
+	}
+	
+	public static void save() throws IOException
+	{
+		PrintWriter pw = new PrintWriter("Books.txt");
+		pw.close();
+		PrintWriter pw1 = new PrintWriter("Issues.txt");
+		pw1.close();
+		PrintWriter pw2 = new PrintWriter("Users.txt");
+		pw2.close();
+		PrintWriter pw3 = new PrintWriter("Returns.txt");
+		pw3.close();
+		FileOutputStream fos = null;
+	    try {
+	        fos = new FileOutputStream("Books.txt");
+	        for ( String key : BookList.keySet())
+	        {
+	        	ObjectOutputStream oos = new ObjectOutputStream(fos);
+		        oos.writeObject(BookList.get(key));
+	        }
+	        
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+	    try {
+	        fos = new FileOutputStream("Users.txt");
+	        for ( String key : UserList.keySet())
+	        {
+	        	ObjectOutputStream oos = new ObjectOutputStream(fos);
+		        oos.writeObject(UserList.get(key));
+	        }
+	        
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+	    try {
+	        fos = new FileOutputStream("Issues.txt");
+	        for (int i=0;i<IssueList.size();i++)
+	        {
+	        	ObjectOutputStream oos = new ObjectOutputStream(fos);
+		        oos.writeObject(IssueList.get(i));
+	        }
+	        
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+	    
+	    try {
+	        fos = new FileOutputStream("Returns.txt");
+	        for (int i=0;i<ReturnList.size();i++)
+	        {
+	        	ObjectOutputStream oos = new ObjectOutputStream(fos);
+		        oos.writeObject(ReturnList.get(i));
+	        }
+	        
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+		
+	}
+	
+	public static void sexit() throws IOException
+	{
+		PrintWriter pw = new PrintWriter("Books.txt");
+		pw.close();
+		PrintWriter pw1 = new PrintWriter("Issues.txt");
+		pw1.close();
+		PrintWriter pw2 = new PrintWriter("Users.txt");
+		pw2.close();
+		PrintWriter pw3 = new PrintWriter("Returns.txt");
+		pw3.close();
+		FileOutputStream fos = null;
+	    try {
+	        fos = new FileOutputStream("Books.txt");
+	        for ( String key : BookList.keySet())
+	        {
+	        	ObjectOutputStream oos = new ObjectOutputStream(fos);
+		        oos.writeObject(BookList.get(key));
+	        }
+	        
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+	    try {
+	        fos = new FileOutputStream("Users.txt");
+	        for ( String key : UserList.keySet())
+	        {
+	        	ObjectOutputStream oos = new ObjectOutputStream(fos);
+		        oos.writeObject(UserList.get(key));
+	        }
+	        
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+	    try {
+	        fos = new FileOutputStream("Issues.txt");
+	        for (int i=0;i<IssueList.size();i++)
+	        {
+	        	ObjectOutputStream oos = new ObjectOutputStream(fos);
+		        oos.writeObject(IssueList.get(i));
+	        }
+	        
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+	    
+	    try {
+	        fos = new FileOutputStream("Returns.txt");
+	        for (int i=0;i<ReturnList.size();i++)
+	        {
+	        	ObjectOutputStream oos = new ObjectOutputStream(fos);
+		        oos.writeObject(ReturnList.get(i));
+	        }
+	        
+	    } finally {
+	        if (fos != null)
+	            fos.close();
+	    }
+	    
+	    // add exit statement
+		
+	}
+	
+	public static int calculate(String DOI, String DOR)
+	{
+		return 0;
+		
+	}
+
+}
+

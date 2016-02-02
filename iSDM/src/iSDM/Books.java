@@ -9,7 +9,8 @@ public class Books implements Serializable{
 	ArrayList<String> authors = new ArrayList<String>();
 	int edition;
 	String subject;
-	int days;
+	int days;	
 	String Publisher;
 	// testing push funtion
 }
+	

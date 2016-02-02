@@ -31,7 +31,7 @@ public class GuiMain {
 	
 	ArrayList<Books> book3;
 	//added to git finally
-	
+	// this is stupid
 	
 	public static void main (String[] args) throws ClassNotFoundException, IOException
 	{
